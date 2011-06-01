@@ -52,9 +52,6 @@ public class PortalStateManager extends StateManager
       context.setStateManager(this);
 
       //
-      WebuiApplication app = (WebuiApplication)context.getApplication();
-
-      //
       ApplicationState appState = null;
       HttpSession session = getSession(context);
       String key = getKey(context);
@@ -72,12 +69,15 @@ public class PortalStateManager extends StateManager
          if (Safe.equals(context.getRemoteUser(), appState.getUserName()))
          {
             uiapp = appState.getApplication();
+            if (context instanceof PortalRequestContext)
+            {
+               PortalRequestContext portalRC = (PortalRequestContext)context;
+               if (!portalRC.getPortalOwner().equals(appState.getApplication().getOwner()))
+               {
+                  uiapp = null;
+               }
+            }
          }
-      }
-
-      //
-      if (appState != null)
-      {
          log.debug("Found application " + key + " :" + appState.getApplication());
       }
       else
@@ -103,6 +103,9 @@ public class PortalStateManager extends StateManager
       //
       if (uiapp == null)
       {
+         //
+         WebuiApplication app = (WebuiApplication)context.getApplication();
+
          ConfigurationManager cmanager = app.getConfigurationManager();
          String uirootClass = cmanager.getApplication().getUIRootComponent();
          Class<? extends UIApplication> type = (Class<UIApplication>) Thread.currentThread().getContextClassLoader().loadClass(uirootClass);
@@ -159,9 +162,7 @@ public class PortalStateManager extends StateManager
       }
       else
       {
-         PortalRequestContext portalRC = (PortalRequestContext)webuiRC;
-         String portalOwner = portalRC.getPortalOwner();
-         return "portal_" + portalOwner;
+         return "portal";
       }
    }
 
